@@ -1,0 +1,100 @@
+#!/bin/sh
+
+scriptPath=`dirname $0`
+projectPath=`pwd`
+action='pull'
+prefix=''
+name=''
+pre=''
+projects=()
+remote=()
+
+for (( i = 1; i <= $#; i++ )); do
+	val=${!i}
+
+        fir=`echo "${val}" | grep -i "^\-[a-z]$"`
+
+        if [ "${fir}" != "" ]; then
+            pre=${val}
+            continue
+        fi
+
+        sen=`echo "${val}" | grep -i "^\-\-[a-z]*\=.*$"`
+
+        if [ "${pre}" == "" ] && [ "${sen}" != "" ]; then
+            pre=${val%%=*}
+            suf=${val##*=}
+        elif [ "${pre}" != "" ]; then
+            suf=${val}
+        fi
+
+        if [ "${pre}" != "" ]; then
+            case "${pre}" in
+                "-c" | "--name")
+                    name=${suf}
+                ;;
+                "-p" | "--prefix")
+                    prefix=${suf}
+                ;;
+                "-a" | "--action")
+                    action=${suf}
+                ;;
+                "-o" | "--project")
+                    projects[$i]=${suf}
+                ;;
+                "-r" | "--remote")
+                    remote[$i]=${suf}
+                ;;
+                *)
+                ;;
+            esac
+        fi
+
+        pre=''
+done
+
+projectsNumber=${#array[@]}
+content="#!/bin/sh\n                                \
+\n                                                  \
+${scriptPath}/qpp                                   \
+--basepath=\"${projectPath}\"                       \
+--action=\"${action}\""
+
+if [ "${prefix}" != "" ]; then
+    content=${content}" --prefix=\"${prefix}\""
+fi
+
+if [ ${projectsNumber} == 0 ]; then
+    list=`ls`
+    OLD_IFS="$IFS"
+    IFS=" "
+    folders=(${list})
+    IFS="${OLD_IFS}"
+    index=0
+
+    for folder in ${folders[@]}; do
+        fpath=${projectPath}/${folder}/".git"
+
+        if [ -d "${fpath}" ]; then
+            projects[$index]=${folder}
+            ((index++))
+        fi
+    done
+fi
+
+for project in ${projects[@]}; do
+    content=${content}" --project=\""${project}"\""
+done
+
+shName="git-"${action}${name}
+target=${scriptPath}"/"${shName}
+
+if [ -d "${target}" ]; then
+    echo -e "\033[0;31m[Error]: invalid action\033[0m"
+    exit 0
+fi
+
+echo -e ${content} > "${target}"
+sudo ln -s "${target}" /usr/bin/${shName}
+
+echo "${shName} build"

@@ -1,0 +1,133 @@
+#!/bin/sh
+
+git=`which git`
+
+if [ ! -f "${git}" ]; then
+    echo 'bash: git: not found';
+    exit 0
+fi
+
+function pull() {
+	propath=$1
+
+	if [ -d "${propath}" ]; then
+            echo -e "\033[0;33mEntry the Git directory: "${propath}"\033[0m"
+            cd ${propath} && ${git} pull
+            echo -e "\033[0;33mLeave the Git directory: "${propath}"\033[0m"
+
+            return 1
+	fi
+
+	return 0
+}
+
+function clone() {
+	remote=$1
+	propath=$2
+
+	if [ ! -d "${propath}" ]; then
+		mkdir -p "${propath}"
+	fi
+
+	if [ -d "${propath}" ]; then
+            echo -e "\033[0;33mEntry the directory: "${propath}"\033[0m"
+            cd ${propath} && ${git} clone ${remote} ./
+            echo -e "\033[0;33mLeave the directory: "${propath}"\033[0m"
+
+            return 1
+	fi
+
+	return 0
+}
+
+basepath=`pwd`
+triggerHelp=0
+action='pull'
+prefix=''
+pre=''
+projects=()
+remote=()
+
+for (( i = 1; i <= $#; i++ )); do
+	val=${!i}
+
+        if [ "${pre}" == "" ] && ([ "${val}" == "-h" ] || [ "${val}" == "--help" ]); then
+            triggerHelp=1
+            break;
+        fi
+
+        fir=`echo "${val}" | grep -i "^\-[a-z]$"`
+
+        if [ "${fir}" != "" ]; then
+            pre=${val}
+            continue
+        fi
+
+        sen=`echo "${val}" | grep -i "^\-\-[a-z]*\=.*$"`
+
+        if [ "${pre}" == "" ] && [ "${sen}" != "" ]; then
+            pre=${val%%=*}
+            suf=${val##*=}
+        elif [ "${pre}" != "" ]; then
+            suf=${val}
+        fi
+
+        if [ "${pre}" != "" ]; then
+            case "${pre}" in
+                "-b" | "--basepath")
+                    basepath=${suf}
+                ;;
+                "-p" | "--prefix")
+                    prefix=${suf}
+                ;;
+                "-a" | "--action")
+                    action=${suf}
+                ;;
+                "-o" | "--project")
+                    projects[$i]=${suf}
+                ;;
+                "-r" | "--remote")
+                    remote[$i]=${suf}
+                ;;
+                *)
+                ;;
+            esac
+        fi
+
+        pre=''
+done
+
+if [ "${triggerHelp}" == 0 ]; then
+    ri=0
+
+    for project in ${projects[@]}; do
+            propath=${basepath}"/"${project}
+
+            if [ "${prefix}" != "" ]; then
+                propath=${propath}/${prefix}
+            fi
+
+            case "${action}" in
+                "pull")
+                    ret=`pull "${propath}"`
+                ;;
+                "clone")
+                    ret=`clone "${remote}" "${propath}"`
+                ;;
+                *)
+                ;;
+            esac
+
+            if [ "${ret}" != "" ]; then
+                echo -e "${ret}\n"
+                ((ri++))
+            fi
+    done
+
+    if [ "${ri}" -gt 0 ]; then
+        exit
+    fi
+fi
+
+echo "usage: qpp [-b <path>] [-p <prefix>] [-a <action>] [-o <project>] [-r <remote>]                       \
+[--basepath=<path>] [--prefix=<prefix>] [-action=<action>] [--project=<project>] [-remote=<remote>]"
