@@ -97,4 +97,4 @@ fi
 echo -e ${content} > "${target}"
 sudo ln -s "${target}" /usr/bin/${shName}
 
-echo "${shName} build"
+echo "${shName} built"
