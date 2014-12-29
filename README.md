@@ -1,7 +1,7 @@
 # QPP - GIT项目(子项目)管理的小工具
 
-# 系统
-- Linux, Mac, Unix
+# 环境
+- shell
 
 ## 进入GIT项目根目录 执行 $PATH/build
 - `-c | --name` 项目名称
