@@ -1,5 +1,8 @@
 # QPP - GIT项目(子项目)管理的小工具
 
+# 系统
+- Linux, Mac, Unix
+
 ## 进入GIT项目根目录 执行 $PATH/build
 - `-c | --name` 项目名称
 - `-p | --prefix` 项目下可能出现的子文件夹
