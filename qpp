@@ -11,9 +11,9 @@ function pull() {
 	propath=$1
 
 	if [ -d "${propath}" ]; then
-            echo -e "\033[0;33mEntry the Git directory: "${propath}"\033[0m"
+            echo "\033[0;33mEntry the Git directory: "${propath}"\033[0m"
             cd ${propath} && ${git} pull
-            echo -e "\033[0;33mLeave the Git directory: "${propath}"\033[0m"
+            echo "\033[0;33mLeave the Git directory: "${propath}"\033[0m"
 
             return 1
 	fi
@@ -26,13 +26,13 @@ function clone() {
 	propath=$2
 
 	if [ ! -d "${propath}" ]; then
-		mkdir -p "${propath}"
+            mkdir -p "${propath}"
 	fi
 
 	if [ -d "${propath}" ]; then
-            echo -e "\033[0;33mEntry the directory: "${propath}"\033[0m"
-            cd ${propath} && ${git} clone ${remote} ./
-            echo -e "\033[0;33mLeave the directory: "${propath}"\033[0m"
+            echo "\033[0;33mEntry the directory: "${propath}"\033[0m"
+            ${git} clone "${remote}" "${propath}"
+            echo "\033[0;33mLeave the directory: "${propath}"\033[0m"
 
             return 1
 	fi
@@ -63,7 +63,11 @@ for (( i = 1; i <= $#; i++ )); do
             continue
         fi
 
-        sen=`echo "${val}" | grep -i "^\-\-[a-z]*\=.*$"`
+        sen=`echo "${val}" | grep -i "^\-[a-z]\=.*$"`
+
+        if [ "${sen}" == "" ]; then
+            sen=`echo "${val}" | grep -i "^\-\-[a-z][a-z]*\=.*$"`
+        fi
 
         if [ "${pre}" == "" ] && [ "${sen}" != "" ]; then
             pre=${val%%=*}
@@ -84,10 +88,10 @@ for (( i = 1; i <= $#; i++ )); do
                     action=${suf}
                 ;;
                 "-o" | "--project")
-                    projects[$i]=${suf}
+                    projects[$i]="${suf}"
                 ;;
                 "-r" | "--remote")
-                    remote[$i]=${suf}
+                    remote[$i]="${suf}"
                 ;;
                 *)
                 ;;
@@ -101,27 +105,41 @@ if [ "${triggerHelp}" == 0 ]; then
     ri=0
 
     for project in ${projects[@]}; do
-            propath=${basepath}"/"${project}
+        propath=${basepath}"/"${project}
 
-            if [ "${prefix}" != "" ]; then
-                propath=${propath}/${prefix}
-            fi
+        if [ "${prefix}" != "" ]; then
+            propath=${propath}/${prefix}
+        fi
 
-            case "${action}" in
-                "pull")
-                    ret=`pull "${propath}"`
-                ;;
-                "clone")
-                    ret=`clone "${remote}" "${propath}"`
-                ;;
-                *)
-                ;;
-            esac
+        case "${action}" in
+            "pull")
+                ret=`pull "${propath}"`
+            ;;
+            "clone")
+                index=0
+                remotev=''
 
-            if [ "${ret}" != "" ]; then
-                echo -e "${ret}\n"
-                ((ri++))
-            fi
+                # ${remote[key]} 取不到值，原因未知
+                for val in ${remote[@]}; do
+                    if [ "${index}" = "${ri}" ]; then
+                        remotev="${val}"
+                        break
+                    fi
+
+                    ((index++))
+                done;
+
+                ret=`clone "${remotev}" "${propath}"`
+            ;;
+            *)
+            ;;
+        esac
+
+        if [ "${ret}" != "" ]; then
+            echo "${ret}\n"
+        fi
+
+        ((ri++))
     done
 
     if [ "${ri}" -gt 0 ]; then
@@ -129,5 +147,15 @@ if [ "${triggerHelp}" == 0 ]; then
     fi
 fi
 
-echo "usage: qpp [-b <path>] [-p <prefix>] [-a <action>] [-o <project>] [-r <remote>]                       \
-[--basepath=<path>] [--prefix=<prefix>] [-action=<action>] [--project=<project>] [-remote=<remote>]"
+echo "usage: qpp \n\
+[-b <path>] \n\
+[-p <prefix>] \n\
+[-a <action>] \n\
+[-o <project>] \n\
+[-r <remote>] \n\
+\n\
+[--basepath=<path>] \n\
+[--prefix=<prefix>] \n\
+[-action=<action>] \n\
+[--project=<project>] \n\
+[-remote=<remote>]"
