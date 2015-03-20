@@ -4,7 +4,7 @@ scriptPath=`dirname $0`
 projectPath=`pwd`
 action='pull'
 prefix=''
-name=''
+pname=''
 pre=''
 projects=()
 remote=()
@@ -19,7 +19,11 @@ for (( i = 1; i <= $#; i++ )); do
             continue
         fi
 
-        sen=`echo "${val}" | grep -i "^\-\-[a-z]*\=.*$"`
+        sen=`echo "${val}" | grep -i "^\-[a-z]\=.*$"`
+
+        if [ "${sen}" == "" ]; then
+            sen=`echo "${val}" | grep -i "^\-\-[a-z][a-z]*\=.*$"`
+        fi
 
         if [ "${pre}" == "" ] && [ "${sen}" != "" ]; then
             pre=${val%%=*}
@@ -31,19 +35,19 @@ for (( i = 1; i <= $#; i++ )); do
         if [ "${pre}" != "" ]; then
             case "${pre}" in
                 "-c" | "--name")
-                    name=${suf}
+                    pname="${suf}"
                 ;;
                 "-p" | "--prefix")
-                    prefix=${suf}
+                    prefix="${suf}"
                 ;;
                 "-a" | "--action")
-                    action=${suf}
+                    action="${suf}"
                 ;;
                 "-o" | "--project")
-                    projects[$i]=${suf}
+                    projects[$i]="${suf}"
                 ;;
                 "-r" | "--remote")
-                    remote[$i]=${suf}
+                    remote[$i]="${suf}"
                 ;;
                 *)
                 ;;
@@ -53,7 +57,7 @@ for (( i = 1; i <= $#; i++ )); do
         pre=''
 done
 
-projectsNumber=${#array[@]}
+projectsNumber=${#folders[@]}
 content="#!/bin/sh\n                                \
 \n                                                  \
 ${scriptPath}/qpp                                   \
@@ -64,7 +68,7 @@ if [ "${prefix}" != "" ]; then
     content=${content}" --prefix=\"${prefix}\""
 fi
 
-if [ ${projectsNumber} == 0 ]; then
+if [ ${projectsNumber} > 0 ]; then
     list=`ls`
     OLD_IFS="$IFS"
     IFS=" "
@@ -76,17 +80,14 @@ if [ ${projectsNumber} == 0 ]; then
         fpath=${projectPath}/${folder}/".git"
 
         if [ -d "${fpath}" ]; then
-            projects[$index]=${folder}
-            ((index++))
+            content=${content}" --project=\""${folder}"\""
         fi
+
+        ((index++))
     done
 fi
 
-for project in ${projects[@]}; do
-    content=${content}" --project=\""${project}"\""
-done
-
-shName="git-"${action}${name}
+shName="git-""${action}""${pname}"
 target=${scriptPath}"/"${shName}
 
 if [ -d "${target}" ]; then
@@ -94,7 +95,8 @@ if [ -d "${target}" ]; then
     exit 0
 fi
 
-echo -e ${content} > "${target}"
+echo ${content} > "${target}"
+chmod +x "${target}"
 sudo ln -s "${target}" /usr/bin/${shName}
 
 echo "${shName} built"
