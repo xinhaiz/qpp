@@ -87,7 +87,7 @@ if [ ${projectsNumber} > 0 ]; then
     done
 fi
 
-shName="git-""${action}""${pname}"
+shName="git""${action}""${pname}"
 target=${scriptPath}"/"${shName}
 
 if [ -d "${target}" ]; then
