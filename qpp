@@ -119,7 +119,7 @@ if [ "${triggerHelp}" == 0 ]; then
                 index=0
                 remotev=''
 
-                # ${remote[key]} 取不到值，原因未知
+                # ${remote[key]} 取不到值，原因未知(OS X)
                 for val in ${remote[@]}; do
                     if [ "${index}" = "${ri}" ]; then
                         remotev="${val}"
