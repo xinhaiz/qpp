@@ -148,14 +148,14 @@ if [ "${triggerHelp}" == 0 ]; then
 fi
 
 echo "usage: qpp \n\
-[-b <path>] \n\
-[-p <prefix>] \n\
-[-a <action>] \n\
-[-o <project>] \n\
-[-r <remote>] \n\
+[-b <path>] "项目基础路径"       \n\
+[-p <prefix>] "项目子目录"       \n\
+[-a <action>] "执行动作"         \n\
+[-o <project>] "项目"           \n\
+[-r <remote>]  "克隆远程项目地址" \n\
 \n\
-[--basepath=<path>] \n\
-[--prefix=<prefix>] \n\
-[-action=<action>] \n\
-[--project=<project>] \n\
-[-remote=<remote>]"
+[--basepath=<path>] "项目基础路径"  \n\
+[--prefix=<prefix>] "项目子目录"    \n\
+[--action=<action>] "执行动作"       \n\
+[--project=<project>] "项目"        \n\
+[-remote=<remote>]  "克隆远程项目地址""
