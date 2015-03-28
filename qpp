@@ -30,9 +30,9 @@ function clone() {
 	fi
 
 	if [ -d "${propath}" ]; then
-            echo "\033[0;33mEntry the directory: "${propath}"\033[0m"
+            echo "\033[0;33m"${propath}" cloning\033[0m"
             ${git} clone "${remote}" "${propath}"
-            echo "\033[0;33mLeave the directory: "${propath}"\033[0m"
+            echo "\033[0;33m"${propath}" cloned \033[0m"
 
             return 1
 	fi
